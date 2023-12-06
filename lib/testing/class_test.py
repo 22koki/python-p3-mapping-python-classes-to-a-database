@@ -1,13 +1,29 @@
+
+import pytest
+import sqlite3 
 from lib.config import CURSOR
 from lib.song import Song
+
+# Separate connection for testing
+TEST_DB_PATH = ':memory:'  # In-memory database
+TEST_CONN = sqlite3.connect(TEST_DB_PATH)
+TEST_CURSOR = TEST_CONN.cursor()
+
+@pytest.fixture
+def setup_teardown():
+    CURSOR.execute('''DROP TABLE IF EXISTS songs''')
+    Song.create_table()
+    yield
+    CURSOR.execute('''DROP TABLE IF EXISTS songs''')
 
 class TestClass:
     '''Class Song in song.py'''
 
     def test_creates_songs_table(self):
-        '''has classmethod "create_table()" that creates a table "songs" if table does not exist.'''
-        Song.create_table()
-        assert(CURSOR.execute("SELECT * FROM songs"))
+       '''has classmethod "create_table()" that creates a table "songs" if table does not exist.'''
+    Song.create_table()
+    result = CURSOR.execute("SELECT * FROM songs").fetchall()
+    assert len(result) == 0
 
     def test_initializes_with_name_and_album(self):
         '''takes a name and album as __init__ arguments and saves them as instance attributes.'''
